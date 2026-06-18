@@ -1,5 +1,7 @@
 # X Video Downloader
 
+**日本語** | [English](#english)
+
 X(旧Twitter)のPCブラウザ版で、ツイートの動画・GIFをワンクリック保存する Chrome 拡張機能（Manifest V3）。
 
 ## 機能
@@ -105,3 +107,106 @@ npm run package
 `manifest.json` ではアイコンを省略しています（Chromeが既定アイコンを使用）。
 独自アイコンを付けたい場合は 16/48/128px の PNG を用意し、`manifest.json` に
 `"icons": { "16": "...", "48": "...", "128": "..." }` を追加してください。
+
+---
+
+# English
+
+[日本語](#x-video-downloader) | **English**
+
+A Chrome extension (Manifest V3) that saves videos and GIFs from tweets with one click on the desktop browser version of X (formerly Twitter).
+
+## Features
+
+- **One-click save** … Hit the `⬇` button in the top-left of a video to instantly save the highest-quality MP4
+- **Save as a real GIF** … X's "GIF" is actually an MP4. This converts it to an actual `.gif` in the browser and saves it (with a progress % indicator)
+- **Quality selector** … The `▾` button lets you pick from every resolution MP4 / GIF that was captured
+- **Toast notifications** … Save start, conversion progress, and errors are shown in the bottom-right of the screen
+- **Options page** … GIF fps / max width / max duration, GIF-by-default ON/OFF, filename template
+
+## Install (for users who just want to use it)
+
+No build required.
+
+1. Download `x-video-downloader.zip` from [**Releases**](../../releases/latest)
+2. Unzip it
+3. Open `chrome://extensions` in Chrome (or a Chromium-based browser like Edge)
+4. Turn on "**Developer mode**" in the top-right
+5. Click "**Load unpacked**" → select the unzipped folder
+
+> If you're a developer who wants to modify the internals, see "Development (build)" below.
+
+## How it works
+
+X doesn't expose video URLs directly in the DOM (because of HLS / variable-bitrate delivery), so the extension intercepts the responses of the GraphQL API the page calls, and obtains every MP4 variant (per resolution) and the media type for each tweet ID.
+
+GIF conversion works by "drawing the MP4 frame-by-frame onto a `<canvas>` → encoding it to `.gif` with `gifenc`". Because twimg can't be fetched directly from a content script due to CORS, the MP4 itself is fetched on the service worker side (which holds `host_permissions`) and passed to the content as base64 (via a blob URL, so the canvas isn't tainted and pixels can be read).
+
+### File layout (TypeScript)
+
+The source is TypeScript (`*.ts`). It's compiled by `tsc` into `*.js` of the same name **in the same place**, and the manifest loads those `*.js` files (the `*.js` are build artifacts and are `.gitignore`d).
+
+- `inject.ts` … Hooks `fetch`/`XHR` in the page's MAIN world and extracts all variants
+- `content.ts` … DL button / quality menu, GIF conversion, toasts, save handling
+- `background.ts` … `chrome.downloads` saving / fetching MP4 bytes for GIFs
+- `options.ts` … Options page logic
+- `types.d.ts` … Types shared by all `.ts` (messages, settings, gifenc, etc., ambient declarations)
+- `vendor/gifenc.js` … The GIF encoder used for MP4→GIF conversion (MIT, mattdesl/gifenc, bundled. Types are in `types.d.ts`)
+- `options.html` / `styles.css` … Options page UI / styling
+- `tsconfig.json` / `package.json` … TypeScript config / dependencies
+
+## Development (build)
+
+```sh
+npm install        # installs typescript, @types/chrome
+npm run build      # compiles *.ts -> *.js (won't emit on type errors)
+npm run watch      # watches for changes and auto-compiles
+npm run typecheck  # type-checks only, no output
+```
+
+`strict` and `noEmitOnError` are enabled, so if there are type errors no `.js` is generated.
+
+## Distribution (handing it to others)
+
+**Users who just want to use it don't need to build.** All Chrome needs to run is the compiled `.js` plus the static files — `*.ts` / `node_modules` / `tsconfig.json` are not needed.
+
+```sh
+npm run package
+```
+
+generates the following two under `dist/`:
+
+- `dist/x-video-downloader/` … An already-expanded folder you can load directly with "Load unpacked"
+- `dist/x-video-downloader.zip` … For handing to others. The recipient just **unzips and loads it** (no build required)
+
+> If you publish on the Chrome Web Store, you can upload this zip as-is
+> (no icon is set, so it's a good idea to add a 128px or similar PNG when publishing).
+
+## Install (unsigned / developer mode)
+
+1. **Run `npm install && npm run build` first** (to generate the `*.js`)
+2. Open `chrome://extensions` in Chrome (or a Chromium-based browser like Edge)
+3. Turn on "**Developer mode**" in the top-right
+4. Click "**Load unpacked**"
+5. Select this `x-video-downloader` folder
+6. Open x.com and hover over a video — the `⬇` `▾` buttons appear in the top-left
+
+Settings can be opened from the extension's "Details" → "Extension options" in `chrome://extensions`.
+
+> If the URL hasn't been captured yet, play the video once or reload the page.
+
+## Usage
+
+- `⬇` (click) … Default save. GIF tweets save as `.gif`, regular videos as the highest-quality MP4
+- `▾` (click) … Pick a resolution / format (GIF / each MP4) and save
+
+## Limitations
+
+- Some videos delivered only via HLS (m3u8) can't be saved as a single file (videos with MP4 variants, and GIFs, can be saved).
+- GIF conversion is done on-device, so long / high-fps / large videos take more time and produce larger files (adjustable in settings).
+- Changes to X's DOM structure or API spec may break it.
+- Downloaded videos are copyrighted. Use them **within the scope of private use**, and do not redistribute without the rights holder's permission.
+
+## About the icon
+
+`manifest.json` omits the icon (Chrome uses a default icon). If you want your own icon, prepare 16/48/128px PNGs and add `"icons": { "16": "...", "48": "...", "128": "..." }` to `manifest.json`.
