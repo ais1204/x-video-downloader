@@ -1,0 +1,17 @@
+{
+  "name": "x-video-downloader",
+  "version": "1.1.0",
+  "description": "X(旧Twitter)の動画・GIFをワンクリック保存するChrome拡張機能",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "package": "tsc && node scripts/package.mjs"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.43",
+    "typescript": "^6.0.3"
+  }
+}

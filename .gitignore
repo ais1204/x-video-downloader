@@ -1,0 +1,11 @@
+node_modules/
+dist/
+
+# TypeScript のビルド成果物（`npm run build` で生成）。
+# 拡張機能を読み込む前に必ずビルドしてください。
+/inject.js
+/content.js
+/background.js
+/options.js
+*.js.map
+*.tsbuildinfo
