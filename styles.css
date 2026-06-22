@@ -46,6 +46,10 @@
   border-radius: 0 18px 18px 0;
   font-size: 12px;
 }
+/* 画像用の単一ボタン（両端とも丸める） */
+.xvdl-main.xvdl-solo {
+  border-radius: 18px;
+}
 
 .xvdl-menu {
   position: absolute;

@@ -29,23 +29,31 @@
   }
 
   // ---------- データ受信 ----------
-  // tweetId -> MediaInfo
+  // tweetId -> MediaInfo / mediaId -> MediaInfo（広告などtweetId非依存の照合用）
   const mediaMap = new Map<string, MediaInfo>();
+  const mediaIdMap = new Map<string, MediaInfo>();
+
+  // 変種が多い方を採用（後続レスポンスが空でも上書きしない）して保存
+  function storeMedia(
+    map: Map<string, MediaInfo>,
+    key: string,
+    info: MediaInfo
+  ): void {
+    const prev = map.get(key);
+    if (!prev || info.variants.length >= prev.variants.length) map.set(key, info);
+  }
 
   window.addEventListener("message", (e: MessageEvent) => {
     if (e.source !== window) return;
     const d = e.data as Partial<MediaMessage> | null;
     if (!d || d.__xvdl !== true || d.kind !== "media" || !d.tweetId) return;
-    const variants = d.variants || [];
-    const prev = mediaMap.get(d.tweetId);
-    // 変種が多い方を採用（後続レスポンスが空でも上書きしない）
-    if (!prev || variants.length >= prev.variants.length) {
-      mediaMap.set(d.tweetId, {
-        mtype: d.mtype || "video",
-        variants,
-        hls: !!d.hls
-      });
-    }
+    const info: MediaInfo = {
+      mtype: d.mtype || "video",
+      variants: d.variants || [],
+      hls: !!d.hls
+    };
+    storeMedia(mediaMap, d.tweetId, info);
+    if (d.mediaId) storeMedia(mediaIdMap, d.mediaId, info);
   });
 
   // ---------- メッセージ ----------
@@ -79,6 +87,31 @@
     return "x";
   }
 
+  // twimg のURLからメディアID（inject側と同一規則）を取り出す。
+  function extractMediaId(url: string | null | undefined): string {
+    if (!url) return "";
+    const m = url.match(
+      /\/(?:amplify_video|ext_tw_video|tweet_video)(?:_thumb)?\/([A-Za-z0-9]+)/
+    );
+    return m ? m[1] : "";
+  }
+
+  // 動画要素のポスター画像（= mp4と同じメディアID）からIDを得る。
+  // 広告など /status/ リンクが無くtweetIdで照合できない動画の保険。
+  function getMediaIdFromVideo(video: Element): string {
+    const poster = video.getAttribute("poster") || "";
+    let id = extractMediaId(poster);
+    if (!id) {
+      const c =
+        video.closest('[data-testid="videoComponent"]') ||
+        video.closest('[data-testid="videoPlayer"]') ||
+        video.parentElement;
+      const img = c && c.querySelector('img[src*="twimg.com"]');
+      if (img) id = extractMediaId(img.getAttribute("src"));
+    }
+    return id;
+  }
+
   interface ResolvedMedia {
     tweetId: string | null;
     user: string;
@@ -86,14 +119,20 @@
   }
   function getMedia(video: Element): ResolvedMedia {
     const tweetId = getTweetId(video);
-    return {
-      tweetId,
-      user: getScreenName(video),
-      info: tweetId ? mediaMap.get(tweetId) || null : null
-    };
+    let info = tweetId ? mediaMap.get(tweetId) || null : null;
+    if (!info) {
+      const mid = getMediaIdFromVideo(video);
+      if (mid) info = mediaIdMap.get(mid) || null;
+    }
+    return { tweetId, user: getScreenName(video), info };
   }
 
-  function makeName(user: string, tweetId: string | null, ext: string): string {
+  function makeName(
+    user: string,
+    tweetId: string | null,
+    ext: string,
+    suffix?: string
+  ): string {
     const tmpl = settings.filename || "{user}_{id}";
     const now = new Date();
     const date =
@@ -104,6 +143,7 @@
       .replace(/\{user\}/g, user || "x")
       .replace(/\{id\}/g, tweetId || String(Date.now()))
       .replace(/\{date\}/g, date);
+    if (suffix) name += "_" + suffix;
     name = name.replace(/[\\/:*?"<>|]+/g, "_").replace(/\s+/g, "_");
     if (!name) name = "x_" + (tweetId || Date.now());
     return name + "." + ext;
@@ -165,6 +205,50 @@
       filename: makeName(user, tweetId, "mp4")
     });
     toast("ダウンロードを開始しました");
+  }
+
+  // 表示用のサムネURL（name=small等）から原寸URL（name=orig）を組み立てる。
+  function origImageUrl(src: string): { url: string; ext: string } | null {
+    try {
+      const u = new URL(src, location.href);
+      if (u.hostname !== "pbs.twimg.com") return null;
+      const m = u.pathname.match(/\/media\/([^/.]+)/);
+      if (!m) return null;
+      let fmt = (u.searchParams.get("format") || "").toLowerCase();
+      if (!fmt) {
+        const em = u.pathname.match(/\.([A-Za-z0-9]+)$/);
+        fmt = em ? em[1].toLowerCase() : "jpg";
+      }
+      const ext =
+        fmt === "png" ? "png" : fmt === "webp" ? "webp" : fmt === "gif" ? "gif" : "jpg";
+      return {
+        url: "https://pbs.twimg.com/media/" + m[1] + "?format=" + fmt + "&name=orig",
+        ext
+      };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // 1投稿に複数画像があってもファイル名が衝突しないようメディアキーの一部を付与。
+  function imageKey(src: string): string {
+    const m = src.match(/\/media\/([^/.?]+)/);
+    return m ? m[1].slice(0, 8) : "";
+  }
+
+  function saveImage(img: HTMLImageElement): void {
+    const src = img.currentSrc || img.src;
+    const r = origImageUrl(src);
+    if (!r) {
+      toast("画像URLを解決できませんでした", true);
+      return;
+    }
+    void send<DownloadResponse>({
+      action: "download",
+      url: r.url,
+      filename: makeName(getScreenName(img), getTweetId(img), r.ext, imageKey(src))
+    });
+    toast("画像を保存しました（原寸）");
   }
 
   function base64ToUint8(b64: string): Uint8Array<ArrayBuffer> {
@@ -449,8 +533,47 @@
     container.appendChild(wrap);
   }
 
+  // 画像（投稿写真）に原寸DLボタンを重ねる。動画と違い単一ボタンのみ。
+  function buildImageUI(img: HTMLImageElement): void {
+    const container =
+      (img.closest('[data-testid="tweetPhoto"]') as HTMLElement | null) ||
+      (img.parentElement as HTMLElement | null);
+    if (!container) return;
+    if (container.querySelector(":scope > .xvdl-wrap")) return;
+    // twimg の投稿画像以外（プロフィール画像等）は対象外
+    if (!/pbs\.twimg\.com\/media\//.test(img.currentSrc || img.src)) return;
+
+    if (getComputedStyle(container).position === "static") {
+      container.style.position = "relative";
+    }
+
+    const wrap = document.createElement("div");
+    wrap.className = "xvdl-wrap";
+
+    const btn = document.createElement("button");
+    btn.className = "xvdl-btn xvdl-main xvdl-solo";
+    btn.textContent = "⬇";
+    btn.title = "原寸大の画像を保存";
+    btn.addEventListener(
+      "click",
+      (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        closeAllMenus();
+        saveImage(img);
+      },
+      true
+    );
+
+    wrap.appendChild(btn);
+    container.appendChild(wrap);
+  }
+
   function scan(): void {
     document.querySelectorAll("video").forEach((v) => buildUI(v));
+    document
+      .querySelectorAll('[data-testid="tweetPhoto"] img')
+      .forEach((im) => buildImageUI(im as HTMLImageElement));
   }
 
   const obs = new MutationObserver(() => scan());

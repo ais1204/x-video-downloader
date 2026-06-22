@@ -21,6 +21,8 @@ interface MediaMessage {
   __xvdl: true;
   kind: "media";
   tweetId: string;
+  /** mp4/サムネ両URLに共通で埋まるメディアID。tweetIdが取れない広告等の照合に使う */
+  mediaId?: string;
   mtype: string;
   variants: Variant[];
   hls: boolean;

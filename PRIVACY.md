@@ -44,7 +44,7 @@ We do not share, sell, or transfer any user data, because we do not collect any.
 
 ### Contact
 
-For questions about this policy, contact: `fm9876tm@icloud.com`
+For questions about this policy, contact: `<your-contact-email>`
 
 ---
 
@@ -78,4 +78,4 @@ For questions about this policy, contact: `fm9876tm@icloud.com`
 
 ### 連絡先
 
-本ポリシーに関するお問い合わせ: `fm9876tm@icloud.com`
+本ポリシーに関するお問い合わせ: `<your-contact-email>`
