@@ -21,6 +21,8 @@ interface MediaMessage {
   __xvdl: true;
   kind: "media";
   tweetId: string;
+  /** mp4/サムネ両URLに共通で埋まるメディアID。tweetIdが取れない広告等の照合に使う */
+  mediaId?: string;
   mtype: string;
   variants: Variant[];
   hls: boolean;
@@ -34,6 +36,14 @@ type XvdlSettings = {
   maxWidth: number;
   maxSeconds: number;
   filename: string;
+  /** ダウンロードフォルダ配下の保存先サブフォルダ（空=直下）。全保存に適用 */
+  subfolder: string;
+  /** PixivをR-18と全年齢で別サブフォルダに分けて保存する */
+  pixivSeparateR18: boolean;
+  /** Pixiv全年齢の保存先サブフォルダ名 */
+  pixivFolderAll: string;
+  /** PixivR-18/R-18Gの保存先サブフォルダ名 */
+  pixivFolderR18: string;
 };
 
 /** content -> background のメッセージ */

@@ -1,9 +1,17 @@
 {
   "name": "x-video-downloader",
-  "version": "1.1.0",
-  "description": "X(旧Twitter)の動画・GIFをワンクリック保存するChrome拡張機能",
+  "version": "1.4.5",
+  "description": "X(旧Twitter)・Pixivの動画・GIF・画像をワンクリック保存するChrome拡張機能",
   "private": true,
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ais1204/x-video-downloader.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ais1204/x-video-downloader/issues"
+  },
+  "homepage": "https://github.com/ais1204/x-video-downloader#readme",
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",

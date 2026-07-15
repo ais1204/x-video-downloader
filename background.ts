@@ -1,6 +1,12 @@
 // Service worker:
+//  - ツールバーアイコンのクリックで設定ページを開く
 //  - "download"   : MP4をchrome.downloadsで保存（CORS回避・ファイル名指定）
 //  - "fetchBytes" : GIF変換用にMP4本体を取得しbase64で返す（content側はCORSで取れないため）
+
+// 拡張機能の主UIはページ内に注入されるため、ツールバーアイコンは設定ページへの導線にする。
+chrome.action.onClicked.addListener(() => {
+  chrome.runtime.openOptionsPage();
+});
 
 chrome.runtime.onMessage.addListener(
   (

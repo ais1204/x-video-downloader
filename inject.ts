@@ -30,10 +30,23 @@
     return { variants: mp4, hls };
   }
 
+  // twimg のURL（mp4変種・サムネ画像とも）からメディアIDを取り出す。
+  // 例: .../amplify_video/1862.../...  .../amplify_video_thumb/1862.../...
+  //     .../ext_tw_video(_thumb)/123/... .../tweet_video(_thumb)/F1ab...
+  // mp4側とサムネ側で同じIDになるため、tweetId非依存の照合キーになる。
+  function extractMediaId(url: unknown): string {
+    if (typeof url !== "string") return "";
+    const m = url.match(
+      /\/(?:amplify_video|ext_tw_video|tweet_video)(?:_thumb)?\/([A-Za-z0-9]+)/
+    );
+    return m ? m[1] : "";
+  }
+
   function post(
     tweetId: string,
     mtype: string,
-    info: { variants: Variant[]; hls: boolean }
+    info: { variants: Variant[]; hls: boolean },
+    mediaId: string
   ): void {
     if (!tweetId || !info || (!info.variants.length && !info.hls)) return;
     const msg: MediaMessage = {
@@ -44,6 +57,7 @@
       variants: info.variants,
       hls: info.hls
     };
+    if (mediaId) msg.mediaId = mediaId;
     window.postMessage(msg, "*");
   }
 
@@ -63,7 +77,11 @@
       if (id && ee && Array.isArray(ee.media)) {
         for (const m of ee.media) {
           if (m && m.video_info && Array.isArray(m.video_info.variants)) {
-            post(id, m.type, extract(m.video_info.variants));
+            const info = extract(m.video_info.variants);
+            const mediaId =
+              extractMediaId(m.media_url_https) ||
+              extractMediaId(info.variants[0] && info.variants[0].url);
+            post(id, m.type, info, mediaId);
           }
         }
       }

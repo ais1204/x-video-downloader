@@ -120,6 +120,43 @@
       <input type="text" id="filename" />
     </div>
 
+    <div class="row">
+      <div>
+        <label for="subfolder">保存先サブフォルダ</label>
+        <div class="desc">
+          ダウンロードフォルダ配下に保存（例 <code>x</code> や <code>media/x</code>）。空で直下。<br />
+          ※ダウンロードフォルダの外へは保存できません（Chromeの制約）
+        </div>
+      </div>
+      <input type="text" id="subfolder" placeholder="（空=直下）" />
+    </div>
+
+    <h1 style="font-size: 16px; margin-top: 28px">Pixiv</h1>
+
+    <div class="row">
+      <div>
+        <label for="pixivSeparateR18">R-18を別フォルダに分ける</label>
+        <div class="desc">全年齢とR-18/R-18Gを保存先サブフォルダで振り分け</div>
+      </div>
+      <input type="checkbox" id="pixivSeparateR18" />
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="pixivFolderAll">Pixiv 全年齢フォルダ名</label>
+        <div class="desc">上の「サブフォルダ」配下に作成</div>
+      </div>
+      <input type="text" id="pixivFolderAll" />
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="pixivFolderR18">Pixiv R-18フォルダ名</label>
+        <div class="desc">上の「サブフォルダ」配下に作成</div>
+      </div>
+      <input type="text" id="pixivFolderR18" />
+    </div>
+
     <div class="actions">
       <button id="save">保存</button>
       <span id="status"></span>

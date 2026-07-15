@@ -25,11 +25,13 @@ const runtimeFiles = [
   "inject.js",
   "content.js",
   "background.js",
+  "pixiv.js",
   "options.js",
   "options.html",
-  "styles.css"
+  "styles.css",
+  "rules.json"
 ];
-const runtimeDirs = ["vendor"];
+const runtimeDirs = ["vendor", "icons"];
 
 // クリーン
 rmSync(dist, { recursive: true, force: true });
