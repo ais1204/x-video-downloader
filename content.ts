@@ -14,7 +14,7 @@
     filename: "{user}_{id}",
     subfolder: "",
     pixivSeparateR18: false,
-    pixivFolderAll: "pixiv",
+    pixivFolderAll: "", // 空=サブフォルダ直下（X画像と同じ場所）
     pixivFolderR18: "pixiv-r18"
   };
   let settings: XvdlSettings = Object.assign({}, DEFAULTS);

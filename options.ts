@@ -11,7 +11,7 @@
     filename: "{user}_{id}",
     subfolder: "",
     pixivSeparateR18: false,
-    pixivFolderAll: "pixiv",
+    pixivFolderAll: "", // 空=サブフォルダ直下（X画像と同じ場所）
     pixivFolderR18: "pixiv-r18"
   };
 
@@ -64,10 +64,9 @@
       filename: (byId<HTMLInputElement>("filename").value || "{user}_{id}").trim(),
       subfolder: cleanFolder(byId<HTMLInputElement>("subfolder").value),
       pixivSeparateR18: byId<HTMLInputElement>("pixivSeparateR18").checked,
-      pixivFolderAll:
-        cleanFolder(byId<HTMLInputElement>("pixivFolderAll").value) || "pixiv",
-      pixivFolderR18:
-        cleanFolder(byId<HTMLInputElement>("pixivFolderR18").value) || "pixiv-r18"
+      // 空欄はそのまま空欄で保存（保存時にサブフォルダ直下扱いになる）
+      pixivFolderAll: cleanFolder(byId<HTMLInputElement>("pixivFolderAll").value),
+      pixivFolderR18: cleanFolder(byId<HTMLInputElement>("pixivFolderR18").value)
     };
     chrome.storage.sync.set(data, () => {
       const st = byId<HTMLElement>("status");

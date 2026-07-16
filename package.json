@@ -1,6 +1,6 @@
 {
   "name": "x-video-downloader",
-  "version": "1.4.5",
+  "version": "1.4.7",
   "description": "X(旧Twitter)・Pixivの動画・GIF・画像をワンクリック保存するChrome拡張機能",
   "private": true,
   "license": "MIT",

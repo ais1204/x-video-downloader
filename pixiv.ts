@@ -22,7 +22,7 @@
     filename: "{user}_{id}",
     subfolder: "",
     pixivSeparateR18: false,
-    pixivFolderAll: "pixiv",
+    pixivFolderAll: "", // 空=サブフォルダ直下（X画像と同じ場所）
     pixivFolderR18: "pixiv-r18"
   };
   let settings: XvdlSettings = Object.assign({}, DEFAULTS);
@@ -165,11 +165,14 @@
         return;
       }
       // 保存先サブフォルダ: (共通subfolder)/(R-18分けが有効なら年齢別フォルダ)
+      // 年齢別フォルダ名が空欄なら、余計な階層を作らずサブフォルダ直下に保存する。
       let folder = settings.subfolder;
       if (settings.pixivSeparateR18) {
         const x = await fetchRating(info.id);
-        const sub = x > 0 ? settings.pixivFolderR18 : settings.pixivFolderAll;
-        folder = joinPath(settings.subfolder, sanitizeFolder(sub));
+        const sub = sanitizeFolder(
+          x > 0 ? settings.pixivFolderR18 : settings.pixivFolderAll
+        );
+        folder = sub ? joinPath(settings.subfolder, sub) : settings.subfolder;
       }
       const ext = extOf(url);
       const filename = joinPath(folder, "pixiv_" + info.id + "_p" + info.page + "." + ext);

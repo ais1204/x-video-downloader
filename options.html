@@ -125,6 +125,7 @@
         <label for="subfolder">保存先サブフォルダ</label>
         <div class="desc">
           ダウンロードフォルダ配下に保存（例 <code>x</code> や <code>media/x</code>）。空で直下。<br />
+          X・Pixiv 共通の保存先です（Pixivもここに保存されます）。<br />
           ※ダウンロードフォルダの外へは保存できません（Chromeの制約）
         </div>
       </div>
@@ -144,17 +145,17 @@
     <div class="row">
       <div>
         <label for="pixivFolderAll">Pixiv 全年齢フォルダ名</label>
-        <div class="desc">上の「サブフォルダ」配下に作成</div>
+        <div class="desc">空欄ならサブフォルダ直下（X画像と同じ場所）。名前を入れるとその子フォルダに保存</div>
       </div>
-      <input type="text" id="pixivFolderAll" />
+      <input type="text" id="pixivFolderAll" placeholder="（空=サブフォルダ直下）" />
     </div>
 
     <div class="row">
       <div>
         <label for="pixivFolderR18">Pixiv R-18フォルダ名</label>
-        <div class="desc">上の「サブフォルダ」配下に作成</div>
+        <div class="desc">上の「サブフォルダ」配下に作成。空欄ならサブフォルダ直下に保存</div>
       </div>
-      <input type="text" id="pixivFolderR18" />
+      <input type="text" id="pixivFolderR18" placeholder="（空=サブフォルダ直下）" />
     </div>
 
     <div class="actions">

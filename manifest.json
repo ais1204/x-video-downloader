@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "X Video Downloader",
-  "version": "1.4.5",
+  "version": "1.4.7",
   "description": "X(旧Twitter)の動画・GIF・画像とPixivの画像をワンクリックで保存。GIFは本物の.gifに変換、動画は画質選択、画像は原寸保存。",
   "icons": {
     "16": "icons/icon16.png",
